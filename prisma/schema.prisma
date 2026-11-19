@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  icon        String    @default("")
+  image       String    @default("")
+  createdAt   DateTime  @default(now())
+  products    Product[]
+}
+
+model Product {
+  id            String       @id @default(cuid())
+  name          String
+  slug          String       @unique
+  description   String
+  specifications String      @default("{}")
+  price         Float
+  originalPrice Float        @default(0)
+  discount      Int          @default(0)
+  stock         Int          @default(100)
+  sold          Int          @default(0)
+  brand         String       @default("")
+  images        String       @default("[]")
+  rating        Float        @default(0)
+  reviewCount   Int          @default(0)
+  sizes         String       @default("[]")
+  colors        String       @default("[]")
+  isFlashSale   Boolean      @default(false)
+  flashSaleEnd  DateTime?
+  categoryId    String
+  category      Category     @relation(fields: [categoryId], references: [id])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  orderItems    OrderItem[]
+  reviews       Review[]
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  author    String
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  trackingNumber  String      @unique
+  fullName        String
+  phone           String
+  address         String
+  city            String
+  deliveryMethod  String      @default("door")
+  paymentMethod   String      @default("cod")
+  status          String      @default("Pending")
+  subtotal        Float
+  deliveryFee     Float       @default(0)
+  total           Float
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  name      String
+  image     String  @default("")
+  price     Float
+  quantity  Int
+}
