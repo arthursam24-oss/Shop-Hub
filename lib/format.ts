@@ -1,8 +1,10 @@
-export const CURRENCY: "$" | "₵" | "₦" = "$";
+export const CURRENCY = "₵";
 
 export function formatCurrency(value: number) {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-GH", {
         style: "currency",
-        currency: CURRENCY === "₵" ? "GHS" : CURRENCY === "₦" ? "NGN" : "USD",
-    }).format(value);
+        currency: "GHS",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(Number(value) || 0);
 }

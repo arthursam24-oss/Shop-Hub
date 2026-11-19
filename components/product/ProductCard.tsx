@@ -7,17 +7,19 @@ import { Heart, Star } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/format";
 import { useAuth } from "@/components/layout/AuthProvider";
+import { parseJsonArray } from "@/lib/json";
 
 export type ProductCardData = {
-    id: string; name: string; slug: string; price: number; originalPrice: number;
-    discount: number; rating: number; reviewCount: number; images: string; stock: number;
+    id: string; name: string; slug: string; price: number; originalPrice?: number; original_price?: number;
+    discount: number; rating: number; reviewCount?: number; review_count?: number; images: unknown; stock: number;
+    vendor_id?: string; booth?: { business_name?: string; slug?: string }; vendor_booth?: { business_name?: string; slug?: string };
 };
 
 export default function ProductCard({ product }: { product: ProductCardData }) {
     const addToCart = useStore((state) => state.addToCart);
     const toggleWishlist = useStore((state) => state.toggleWishlist);
     const wishlist = useStore((state) => state.wishlist);
-    const images = JSON.parse(product.images || "[]") as string[];
+    const images = parseJsonArray(product.images);
     const router = useRouter();
     const { user, loading } = useAuth();
 
@@ -46,11 +48,12 @@ export default function ProductCard({ product }: { product: ProductCardData }) {
             </Link>
             <div className="mt-1">
                 <p className="font-bold text-gray-900">{formatCurrency(product.price)}</p>
-                {product.originalPrice > product.price && <p className="text-xs text-gray-400 line-through">{formatCurrency(product.originalPrice)}</p>}
+                {Number(product.originalPrice ?? product.original_price ?? 0) > Number(product.price) && <p className="text-xs text-gray-400 line-through">{formatCurrency(Number(product.originalPrice ?? product.original_price))}</p>}
                 <div className="mt-1 flex items-center gap-1 text-xs text-gray-500">
-                    <Star size={13} className="fill-[#E9B872] text-[#E9B872]" /><span>{product.rating}</span><span>({product.reviewCount})</span>
+                    <Star size={13} className="fill-[#E9B872] text-[#E9B872]" /><span>{product.rating}</span><span>({product.reviewCount ?? product.review_count ?? 0})</span>
                 </div>
             </div>
+            {(product.booth || product.vendor_booth) && <Link href={`/booths/${(product.booth || product.vendor_booth)?.slug}`} className="mt-1 block truncate text-xs font-bold text-[#7A1F33] hover:underline">Sold by {(product.booth || product.vendor_booth)?.business_name}</Link>}
             <button onClick={add} className="mt-3 w-full rounded-md bg-[#7A1F33] py-2 text-sm font-bold text-white opacity-100 transition hover:bg-[#5C1727] sm:opacity-0 sm:group-hover:opacity-100">Add to Cart</button>
         </article>
     );

@@ -9,11 +9,11 @@ export const instant = false;
 export default async function Home() {
   const supabase = getSupabaseServer();
   const categoryRows = supabase ? await supabase.from("categories").select("*").order("name", { ascending: true }) : { data: [] };
-  const flashRows = supabase ? await supabase.from("products").select("*").eq("is_flash_sale", true).order("discount", { ascending: false }).limit(8) : { data: [] };
-  const featuredRows = supabase ? await supabase.from("products").select("*").order("sold", { ascending: false }).limit(12) : { data: [] };
+  const flashRows = supabase ? await supabase.from("products").select("*, booth:vendor_booths(*)").eq("status", "approved").eq("is_flash_sale", true).order("discount", { ascending: false }).limit(8) : { data: [] };
+  const featuredRows = supabase ? await supabase.from("products").select("*, booth:vendor_booths(*)").eq("status", "approved").order("sold", { ascending: false }).limit(12) : { data: [] };
   const categories = categoryRows.data || [];
   const flashProducts = flashRows.data || [];
-  const featured = featuredRows.data || [];
+  const featured = (featuredRows.data || []).sort(() => Math.random() - 0.5);
 
   const categoryOrder = ["electronics", "fashion", "phones-tablets", "home-office", "health-beauty", "groceries"];
   const orderedCategories = categoryOrder.map((slug) => categories.find((category) => category.slug === slug)).filter(Boolean) as typeof categories;
@@ -75,7 +75,8 @@ export default async function Home() {
 
 async function CategoryRow({ category }: { category: { id: string; name: string; slug: string } }) {
   const supabase = getSupabaseServer();
-  const { data: products } = supabase ? await supabase.from("products").select("*").eq("category_id", category.id).order("rating", { ascending: false }).limit(6) : { data: [] };
+  const { data: products } = supabase ? await supabase.from("products").select("*, booth:vendor_booths(*)").eq("status", "approved").eq("category_id", category.id).order("rating", { ascending: false }).limit(6) : { data: [] };
   if (!products?.length) return null;
+  products.sort(() => Math.random() - 0.5);
   return <section className="mt-5 rounded-lg bg-white p-4"><div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-black">{category.name}</h2><Link href={`/products?category=${category.slug}`} className="text-sm font-bold text-[#f68b1e]">See All</Link></div><div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">{products.map((product) => <ProductCard key={product.id} product={product} />)}</div></section>
 }

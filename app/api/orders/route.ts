@@ -56,7 +56,13 @@ export async function POST(request: NextRequest) {
         return Response.json({ error: itemsError.message }, { status: 500 });
     }
 
-    return Response.json(order);
+    const { data: paymentProducts } = await supabase
+        .from("products")
+        .select("payment_vendor:vendor_booths(payment_url)")
+        .in("id", items.map(item => item.id));
+    const paymentUrl = paymentProducts?.map((row: any) => row.payment_vendor?.payment_url).find((url: string | undefined) => Boolean(url));
+
+    return Response.json({ ...order, payment_url: paymentUrl || null });
 }
 
 export async function GET() {

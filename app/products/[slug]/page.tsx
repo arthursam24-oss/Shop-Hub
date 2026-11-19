@@ -10,7 +10,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     if (!supabase) notFound();
     const { data: product, error } = await supabase
         .from("products")
-        .select("*, category (*), reviews (*)")
+        .select("*, category (*), reviews (*), booth:vendor_booths(*)")
         .eq("slug", slug)
         .single();
 

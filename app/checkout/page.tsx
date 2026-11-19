@@ -27,7 +27,15 @@ export default function CheckoutPage() {
         const form = new FormData(event.currentTarget);
         const response = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fullName: form.get("fullName"), phone: form.get("phone"), address: form.get("address"), city: form.get("city"), deliveryMethod, paymentMethod, items: cart }) });
         const order = await response.json();
-        if (order.id) { clearCart(); router.push(`/orders/${order.id}`); } else setSubmitting(false);
+        if (order.id) {
+            clearCart();
+            if (order.payment_url && paymentMethod !== "cod") {
+                const separator = order.payment_url.includes("?") ? "&" : "?";
+                window.location.href = `${order.payment_url}${separator}order=${encodeURIComponent(order.tracking_number)}&amount=${encodeURIComponent(String(order.total))}`;
+            } else {
+                router.push(`/orders/${order.id}`);
+            }
+        } else setSubmitting(false);
     }
 
     if (!cart.length) return <div className="mx-auto max-w-[1380px] px-3 py-16 text-center"><div className="rounded-lg bg-white p-12"><h1 className="text-2xl font-black">Nothing to check out</h1><Link href="/products" className="mt-5 inline-block rounded bg-[#7A1F33] px-6 py-3 font-bold text-white">Continue Shopping</Link></div></div>;

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { formatCurrency } from "@/lib/format";
+import OrderTracker from "@/components/cart/OrderTracker";
 
 export const instant = false;
 
@@ -10,23 +11,40 @@ export default async function OrdersPage() {
 
     const { data: orders, error } = await supabase
         .from("orders")
-        .select("*, items(*)")
+        .select("*, items:order_items(*)")
         .order("created_at", { ascending: false });
 
     if (error) {
-        console.error(error);
-        return <div>Error loading orders</div>;
+        const details = {
+            code: (error as any).code,
+            message: (error as any).message,
+            details: (error as any).details,
+            hint: (error as any).hint,
+        };
+        console.error("Supabase orders query failed", details);
+        return (
+            <div className="mx-auto max-w-[1000px] px-3 py-12">
+                <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+                    <h1 className="text-xl font-black text-red-800">Orders database is not ready</h1>
+                    <p className="mt-2 text-sm text-red-700">
+                        Run <code>supabase/schema.sql</code> in the Supabase SQL editor, then refresh this page.
+                    </p>
+                    <p className="mt-3 text-xs text-red-700">{details.code || "Supabase error"}: {details.message || "Could not load orders"}</p>
+                </div>
+            </div>
+        );
     }
 
     return (
         <div className="mx-auto max-w-[1000px] px-3 py-5 lg:px-6">
             <h1 className="mb-4 text-2xl font-black">My Orders</h1>
+            <OrderTracker />
             {!orders.length ? (
                 <div className="rounded-lg bg-white p-12 text-center">
                     <h2 className="text-xl font-bold">No orders yet</h2>
                     <Link
                         href="/products"
-                        className="mt-5 inline-block rounded bg-[#f68b1e] px-5 py-2.5 font-bold text-white"
+                        className="mt-5 inline-block rounded bg-[#7A1F33] px-5 py-2.5 font-bold text-white"
                     >
                         Start Shopping
                     </Link>
@@ -48,8 +66,8 @@ export default async function OrdersPage() {
                                 </div>
                                 <span
                                     className={`rounded-full px-3 py-1 text-xs font-bold ${order.status === "Delivered"
-                                            ? "bg-green-100 text-green-700"
-                                            : "bg-yellow-100 text-yellow-700"
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-yellow-100 text-yellow-700"
                                         }`}
                                 >
                                     {order.status}

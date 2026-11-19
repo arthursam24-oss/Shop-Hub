@@ -14,7 +14,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     const categoryRows = supabase ? await supabase.from("categories").select("*").order("name", { ascending: true }) : { data: [] };
     const categories = categoryRows.data || [];
     const categoryRecord = category ? categories.find((item) => item.slug === category) : undefined;
-    let productQuery = supabase ? supabase.from("products").select("*") : null;
+    let productQuery = supabase ? supabase.from("products").select("*, booth:vendor_booths(*)").eq("status", "approved") : null;
     if (productQuery && categoryRecord) productQuery = productQuery.eq("category_id", categoryRecord.id);
     if (productQuery && q) productQuery = productQuery.or(`name.ilike.%${q}%,brand.ilike.%${q}%,description.ilike.%${q}%`);
     if (productQuery) productQuery = sort === "low" ? productQuery.order("price", { ascending: true }) : sort === "high" ? productQuery.order("price", { ascending: false }) : sort === "new" ? productQuery.order("created_at", { ascending: false }) : productQuery.order("sold", { ascending: false });

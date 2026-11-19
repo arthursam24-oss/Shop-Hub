@@ -7,6 +7,8 @@ import { useStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/format";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/layout/AuthProvider";
+import { parseJsonArray, parseJsonObject } from "@/lib/json";
+import Link from "next/link";
 
 export default function ProductDetail({ product }: { product: any }) {
     const [selectedImage, setSelectedImage] = useState(0);
@@ -17,10 +19,10 @@ export default function ProductDetail({ product }: { product: any }) {
     const addToCart = useStore((state) => state.addToCart);
     const toggleWishlist = useStore((state) => state.toggleWishlist);
     const wishlist = useStore((state) => state.wishlist);
-    const images = JSON.parse(product.images || "[]") as string[];
-    const sizes = JSON.parse(product.sizes || "[]") as string[];
-    const colors = JSON.parse(product.colors || "[]") as string[];
-    const specifications = JSON.parse(product.specifications || "{}") as Record<string, string>;
+    const images = parseJsonArray(product.images);
+    const sizes = parseJsonArray(product.sizes);
+    const colors = parseJsonArray(product.colors);
+    const specifications = parseJsonObject(product.specifications);
     const router = useRouter();
     const { user, loading } = useAuth();
 
@@ -55,6 +57,7 @@ export default function ProductDetail({ product }: { product: any }) {
             <section className="mt-5 rounded-lg bg-white p-4"><div className="border-b"><button onClick={() => setTab("description")} className={`px-4 py-3 text-sm font-bold ${tab === "description" ? "border-b-2 border-[#7A1F33] text-[#7A1F33]" : ""}`}>Description</button><button onClick={() => setTab("specifications")} className={`px-4 py-3 text-sm font-bold ${tab === "specifications" ? "border-b-2 border-[#7A1F33] text-[#7A1F33]" : ""}`}>Specifications</button><button onClick={() => setTab("reviews")} className={`px-4 py-3 text-sm font-bold ${tab === "reviews" ? "border-b-2 border-[#7A1F33] text-[#7A1F33]" : ""}`}>Reviews</button></div>
                 {tab === "description" && <p className="py-5 leading-7 text-gray-700">{product.description}</p>}{tab === "specifications" && <table className="my-4 w-full text-sm"><tbody>{Object.entries(specifications).map(([key, value]) => <tr key={key} className="border-b"><th className="w-1/3 py-3 text-left text-gray-500">{key}</th><td className="py-3">{String(value)}</td></tr>)}</tbody></table>}{tab === "reviews" && <div className="space-y-3 py-4">{product.reviews.length ? product.reviews.map((review: any) => <div key={review.id} className="border-b pb-3"><p className="font-bold">{review.author}</p><p className="text-sm text-yellow-500">{"★".repeat(review.rating)}</p><p className="mt-1 text-sm text-gray-600">{review.comment}</p></div>) : <p className="text-gray-500">No reviews yet.</p>}</div>}
             </section>
+            {product.booth?.slug && <Link href={`/booths/${product.booth.slug}`} className="mt-2 inline-block text-sm font-bold text-[#7A1F33] underline">Sold by {product.booth.business_name}</Link>}
         </div>
     );
 }
